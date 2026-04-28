@@ -1,7 +1,7 @@
 import flet as ft
 import os
 
-from client_flet.services_flet.client_http_services import http_requests_register
+from client_flet.services_flet.client_http_services_v2 import http_requests_register
 
 
 class RegisterView:
@@ -156,24 +156,11 @@ class RegisterView:
                 "confirm_password": confirm_password
             }
 
-            # resp = http_requests_register(
-            #     login_name=login_name,
-            #     nickname=nickname,
-            #     gender=gender,
-            #     password=password,
-            #     confirm_password=confirm_password,
-            #     files=files
-            # )
             resp = http_requests_register(data=data, files=files)
 
             if "avatar" in files:
                 files["avatar"].close()
 
-            # if resp["code"] == 0:
-            #     self.show_msg("注册成功，请登录")
-            #     self.app.show_login_view()
-            # else:
-            #     self.show_msg(resp["msg"])
             if resp["code"] == 0:
                 self.show_msg("注册成功，请返回登录", "注册成功")
             else:
@@ -196,11 +183,9 @@ class RegisterView:
                 )
             ],
         )
-
         self.page.overlay.append(dialog)
         dialog.open = True
         self.page.update()
-
     def close_dialog(self, dialog):
         dialog.open = False
         self.page.update()

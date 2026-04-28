@@ -1,6 +1,5 @@
 import flet as ft
-from client_flet.services_flet.client_http_services import http_requests_login
-
+from client_flet.services_flet.client_http_services_v2 import http_requests_login
 
 
 class LoginView:
@@ -9,9 +8,7 @@ class LoginView:
         self.app = app
 
         self.username = ft.TextField(label="登录名", border_radius=8, height=48, text_size=14,)
-
-        self.password = ft.TextField(
-            label="密码", password=True, can_reveal_password=True,
+        self.password = ft.TextField(label="密码", password=True, can_reveal_password=True,
             border_radius=8, height=48, text_size=14,)
 
     def build(self):
@@ -98,14 +95,9 @@ class LoginView:
         except Exception as ex:
             self.show_msg(f"登录失败：{ex}")
 
-
     def open_register(self, e):
         self.app.show_register_view()
 
-    # def show_msg(self, msg):
-    #     self.page.snack_bar = ft.SnackBar(ft.Text(msg))
-    #     self.page.snack_bar.open = True
-    #     self.page.update()
     def show_msg(self, msg, title="提示"):
         dialog = ft.AlertDialog(
             modal=True,

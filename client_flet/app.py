@@ -5,8 +5,8 @@ from views.login_view import LoginView
 from views.register_view import RegisterView
 from views.main_view import MainView
 from views.update_info_view import UpdateInfoView
-from services_flet.socket_service import SocketService
-from services_flet.message_service import MessageService
+from services_flet.socket_service_v2 import SocketService
+from services_flet.message_service_v2 import MessageService
 from controller import ChatController
 
 class ChatApp:
@@ -17,17 +17,15 @@ class ChatApp:
         self.user_name = None
         self.nick_name = None
         self.head_url = None
-
         self.current_chat_type = None
         self.current_target_id = None
         self.current_target_name = None
+        self.file_save_dir = os.path.join(os.getcwd(), "received_files")
 
         self.message_service = MessageService()
-
         self.controller = ChatController(self)
         self.socket_service = SocketService(self.controller.handle_message)
 
-        self.file_save_dir = os.path.join(os.getcwd(), "received_files")
 
     def run(self):
         self.show_login_view()
@@ -45,38 +43,12 @@ class ChatApp:
         self.page.add( RegisterView(self.page, self).build() )
         self.page.update()
 
-    def logout(self):
-        try:
-            if self.socket_service:
-                self.socket_service.send_json({
-                    "type": "logout_socket",
-                    "user_id": self.user_id
-                })
-                self.socket_service.close()
-        except Exception:
-            pass
-
-        self.user_id = None
-        self.user_name = None
-        self.nick_name = None
-        self.head_url = None
-
-        self.current_chat_type = None
-        self.current_target_id = None
-        self.current_target_name = None
-
-        self.main_view = None
-
-        self.show_login_view()
-
     def show_main_view(self):
         self.clear_page()
         self.main_view = MainView(self.page, self)
-
         self.controller.bind_view( self.main_view )
-
-        self.page.add(self.main_view.build())
-        self.main_view.switch_nav("friend")
+        self.page.add( self.main_view.build() )
+        self.main_view.switch_nav("")
         self.page.update()
 
     def update_chat_ui(self):
@@ -88,8 +60,26 @@ class ChatApp:
         self.page.add( UpdateInfoView(self.page, self).build() )
         self.page.update()
 
+    def log_out(self):
+        try:
+            if self.socket_service:
+                self.socket_service.send_json({
+                    "type": "logout_socket",
+                    "user_id": self.user_id
+                })
+                self.socket_service.close()
+        except Exception:
+            pass
+        self.user_id = None
+        self.user_name = None
+        self.nick_name = None
+        self.head_url = None
+        self.current_chat_type = None
+        self.current_target_id = None
+        self.current_target_name = None
+        self.main_view = None
 
-
+        self.show_login_view()
 
     def add_friend(self):
         self.controller.add_friend()

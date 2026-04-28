@@ -1,7 +1,7 @@
 import os
 import flet as ft
 
-from client_flet.services_flet.client_http_services import (
+from client_flet.services_flet.client_http_services_v2 import (
     http_requests_get_user_info,
     http_requests_update_user_info,
 )

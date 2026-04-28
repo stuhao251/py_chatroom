@@ -1,7 +1,6 @@
 import flet as ft
-import base64
-import os
-from client_flet.services_flet.client_http_services import (
+
+from client_flet.services_flet.client_http_services_v2 import (
     http_requests_get_friends,
     http_requests_get_groups,
 )
@@ -23,24 +22,17 @@ class MainView:
         self.chat_title = ft.Text("请选择一个会话", size=18, weight=ft.FontWeight.BOLD)
         self.chat_list = ft.ListView(expand=True, spacing=8, padding=16)
 
-        self.input_box = ft.TextField(
-            hint_text="请输入消息...",
+        self.input_box = ft.TextField( hint_text="请输入消息...",
             multiline=True, min_lines=2, max_lines=4, expand=True, disabled=True,)
 
-        self.send_btn = ft.ElevatedButton(
-            text="发送", bgcolor="#07c160", color="white", disabled=True,
+        self.send_btn = ft.ElevatedButton( text="发送", bgcolor="#07c160", color="white", disabled=True,
             on_click = lambda e: self.app.controller.send_text(e), )
 
-        self.file_picker_image = ft.FilePicker(
-            on_result=lambda e: self.app.controller.on_image_picked(e)
-        )
-
-        self.file_picker_file = ft.FilePicker(
-            on_result=lambda e: self.app.controller.on_file_picked(e)
-        )
-
+        self.file_picker_image = ft.FilePicker(on_result = lambda e: self.app.controller.on_image_picked(e) )
+        self.file_picker_file = ft.FilePicker(on_result = lambda e: self.app.controller.on_file_picked(e) )
         self.page.overlay.append(self.file_picker_image)
         self.page.overlay.append(self.file_picker_file)
+
 
     def build(self):
         return ft.Row(
@@ -51,6 +43,8 @@ class MainView:
                 self.build_chat_panel(),
             ], )
 
+
+    # 建立导航栏
     def build_nav_bar(self):
         return ft.Container(
             width=72,
@@ -59,11 +53,7 @@ class MainView:
             content=ft.Column(
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 controls=[
-                    self.build_avatar(
-                        name=self.app.nick_name,
-                        avatar_url=self.app.head_url,
-                        size=48
-                    ),
+                    self.build_avatar(name = self.app.nick_name, avatar_url=self.app.head_url, size=48),
                     ft.Text(self.app.nick_name or "", color="white", size=11),
                     ft.Divider(height=20, color="transparent"),
 
@@ -77,12 +67,12 @@ class MainView:
                         icon=ft.Icons.LOGOUT,
                         icon_color="#d8d8d8",
                         tooltip="退出登录",
-                        on_click=lambda e: self.app.logout()
+                        on_click=lambda e: self.app.log_out()
                     ),
                 ],
             ),
         )
-
+    # 导航按钮
     def nav_button(self, icon, mode):
         btn = ft.Container(
             width=56,
@@ -99,13 +89,34 @@ class MainView:
         )
         self.nav_buttons[mode] = btn
         return btn
+    # 导航栏切换
+    def switch_nav(self, mode):
+        self.current_nav = mode
+        self.refresh_nav_buttons()
+        self.app.current_chat_type = None
+        self.app.current_target_id = None
+        self.app.current_target_name = None
+        self.disable_chat_area()
 
+        if mode == "friend":
+            self.session_title.value = "好友列表"
+            self.load_friend_sessions()
+        elif mode == "group":
+            self.session_title.value = "群聊列表"
+            self.load_group_sessions()
+        elif mode == "action":
+            self.session_title.value = "功能菜单"
+            self.load_action_sessions()
+        self.page.update()
+    # 刷新导航按钮，更改选中颜色
     def refresh_nav_buttons(self):
         for mode, btn in self.nav_buttons.items():
             selected = self.current_nav == mode
             btn.bgcolor = "#3a3a3a" if selected else "#2e2e2e"
             btn.content.color = "#07c160" if selected else "#d8d8d8"
 
+
+    #建立会话栏
     def build_session_panel(self):
         return ft.Container(
             width=300,
@@ -122,7 +133,7 @@ class MainView:
                             controls=[
                                 self.session_title,
                                 ft.Text(
-                                    f"{self.app.nick_name}（{self.app.user_name}）",
+                                    f"[我]--{self.app.nick_name}({self.app.user_name})",
                                     size=12,
                                     color="#888888",
                                 ),
@@ -134,7 +145,25 @@ class MainView:
             ),
         )
 
+
+    #聊天栏构建
     def build_chat_panel(self):
+        self.emoji_btn = ft.IconButton(
+            icon=ft.Icons.EMOJI_EMOTIONS_OUTLINED,
+            icon_color="#333333",
+            on_click=self.open_emoji_panel,
+        )
+        self.image_btn = ft.IconButton(
+            icon=ft.Icons.IMAGE_OUTLINED,
+            icon_color="#333333",
+            on_click=lambda e: self.app.controller.pick_image(e),
+        )
+        self.file_btn = ft.IconButton(
+            icon=ft.Icons.ATTACH_FILE,
+            icon_color="#333333",
+            on_click=lambda e: self.app.controller.pick_file(e),
+        )
+
         return ft.Container(
             expand=True,
             bgcolor="white",
@@ -158,18 +187,9 @@ class MainView:
                             controls=[
                                 ft.Row(
                                     controls=[
-                                        ft.IconButton(
-                                            icon=ft.Icons.EMOJI_EMOTIONS_OUTLINED,
-                                            on_click = self.open_emoji_panel,
-                                        ),
-                                        ft.IconButton(
-                                            icon=ft.Icons.IMAGE_OUTLINED,
-                                            on_click = lambda e: self.app.controller.pick_image(e) ,
-                                        ),
-                                        ft.IconButton(
-                                            icon=ft.Icons.ATTACH_FILE,
-                                            on_click = lambda e: self.app.controller.pick_file(e),
-                                        ),
+                                        self.emoji_btn,
+                                        self.image_btn,
+                                        self.file_btn,
                                     ]
                                 ),
                                 ft.Row(
@@ -186,30 +206,8 @@ class MainView:
             ),
         )
 
-    def switch_nav(self, mode):
-        self.current_nav = mode
-        self.refresh_nav_buttons()
 
-        self.app.current_chat_type = None
-        self.app.current_target_id = None
-        self.app.current_target_name = None
-
-        self.disable_chat_area()
-
-        if mode == "friend":
-            self.session_title.value = "好友列表"
-            self.load_friend_sessions()
-
-        elif mode == "group":
-            self.session_title.value = "群聊列表"
-            self.load_group_sessions()
-
-        elif mode == "action":
-            self.session_title.value = "功能菜单"
-            self.load_action_sessions()
-
-        self.page.update()
-
+    #表情面板
     def open_emoji_panel(self, e=None):
         emojis = [
             "😀", "😁", "😂", "🤣", "😊", "😍", "😘", "😎",
@@ -251,11 +249,6 @@ class MainView:
             for item in friends:
                 self.app.friend_map[item["id"]] = item
                 self.session_list.controls.append(
-                    # self.create_session_item(
-                    #     title=item["nickname"],
-                    #     subtitle=f"账号：{item['login_name']}",
-                    #     on_click=lambda e, i=item: self.select_friend(i),
-                    # )
                     self.create_session_item(
                         title=item["nickname"],
                         subtitle=f"账号：{item['login_name']}",
@@ -265,7 +258,6 @@ class MainView:
                         avatar_url=item.get("avatar_url"),
                     )
                 )
-
         except Exception as e:
             self.show_msg(f"加载好友失败：{e}")
 
@@ -281,11 +273,6 @@ class MainView:
             for item in groups:
                 self.app.group_map[item["id"]] = item
                 self.session_list.controls.append(
-                    # self.create_session_item(
-                    #     title=item["group_name"],
-                    #     subtitle=f"群成员：{item.get('member_count', 0)}人",
-                    #     on_click=lambda e, i=item: self.select_group(i),
-                    # )
                     self.create_session_item(
                         title=item["group_name"],
                         subtitle=f"群成员：{item.get('member_count', 0)}人",
@@ -300,7 +287,6 @@ class MainView:
 
     def load_action_sessions(self):
         self.session_list.controls.clear()
-
         actions = [
             ("添加好友", getattr(self.app, "add_friend", None)),
             ("删除好友", getattr(self.app, "delete_friend", None)),
@@ -320,7 +306,7 @@ class MainView:
                     border_radius=8,
                     padding=ft.padding.symmetric(horizontal=16),
                     alignment=ft.alignment.center_left,
-                    on_click=lambda e, cb=callback: cb() if cb else self.show_msg("该功能还未迁移"),
+                    on_click = lambda e, cb = callback: cb() if cb else self.show_msg("该功能还未迁移"),
                     content=ft.Text(title, size=15, color="#222222"),
                 )
             )
@@ -351,11 +337,6 @@ class MainView:
             content=ft.Row(
                 spacing=12,
                 controls=[
-                    # ft.CircleAvatar(
-                    #     content=ft.Text(title[:1], color="white"),
-                    #     bgcolor="#07c160",
-                    #     radius=24,
-                    # ),
                     self.build_avatar(
                         name=title,
                         avatar_url=avatar_url,
@@ -378,13 +359,10 @@ class MainView:
         self.app.current_chat_type = "private"
         self.app.current_target_id = item["id"]
         self.app.current_target_name = item["nickname"]
-
-        self.chat_title.value = f"{item['nickname']}（{item['login_name']}）"
+        self.chat_title.value = f"{item['nickname']}({item['login_name']})"
 
         self.enable_chat_area()
         self.load_current_chat()
-        # self.app.message_service.clear_unread("private", item["id"])
-        # self.page.update()
         self.app.message_service.clear_unread("private", item["id"])
         self.refresh_current_session_list()
 
@@ -392,12 +370,11 @@ class MainView:
         self.app.current_chat_type = "group"
         self.app.current_target_id = item["id"]
         self.app.current_target_name = item["group_name"]
-
         members = item.get("member_names", "")
         if len(members) > 30:
             members = members[:30] + "..."
 
-        self.chat_title.value = f"{item['group_name']}（{item.get('member_count', 0)}人） 成员：{members}"
+        self.chat_title.value = f"{item['group_name']}({item.get('member_count', 0)}人)--成员：{members}"
 
         self.enable_chat_area()
         self.load_current_chat()
@@ -408,6 +385,13 @@ class MainView:
         self.input_box.disabled = False
         self.send_btn.disabled = False
 
+        self.emoji_btn.disabled = False
+        self.image_btn.disabled = False
+        self.file_btn.disabled = False
+        self.emoji_btn.icon_color = "#333333"
+        self.image_btn.icon_color = "#333333"
+        self.file_btn.icon_color = "#333333"
+
     def disable_chat_area(self):
         self.chat_title.value = "请选择一个会话"
         self.chat_list.controls.clear()
@@ -415,20 +399,14 @@ class MainView:
         self.input_box.disabled = True
         self.send_btn.disabled = True
 
-    def load_current_chat(self):
-        self.chat_list.controls.clear()
-
-        if not self.app.current_chat_type or not self.app.current_target_id:
-            return
-
-        messages = self.app.message_service.get_messages(
-            self.app.current_chat_type,
-            self.app.current_target_id,
-        )
+        self.emoji_btn.disabled = True
+        self.image_btn.disabled = True
+        self.file_btn.disabled = True
+        self.emoji_btn.icon_color = "#bfbfbf"
+        self.image_btn.icon_color = "#bfbfbf"
+        self.file_btn.icon_color = "#bfbfbf"
 
 
-        for msg in messages:
-            self.chat_list.controls.append( self.render_message(msg) )
 
     def show_msg(self, msg):
         self.page.snack_bar = ft.SnackBar(ft.Text(msg))
@@ -464,9 +442,7 @@ class MainView:
             self.redraw_friend_sessions()
         elif self.current_nav == "group":
             self.redraw_group_sessions()
-
         self.page.update()
-
     def redraw_friend_sessions(self):
         self.session_list.controls.clear()
         for item in self.app.friend_map.values():
@@ -492,6 +468,17 @@ class MainView:
                     target_id=item["id"],
                 )
             )
+
+    def load_current_chat(self):
+        self.chat_list.controls.clear()
+        if not self.app.current_chat_type or not self.app.current_target_id:
+            return
+        messages = self.app.message_service.get_messages(
+            self.app.current_chat_type,
+            self.app.current_target_id,
+        )
+        for msg in messages:
+            self.chat_list.controls.append( self.render_message(msg) )
 
     def render_message(self, msg):
         if isinstance(msg, dict) and msg.get("kind") == "image":

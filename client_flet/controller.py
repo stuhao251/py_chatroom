@@ -2,7 +2,7 @@ import os
 import base64
 import flet as ft
 
-from client_flet.services_flet.client_http_services import (
+from client_flet.services_flet.client_http_services_v2 import (
     http_requests_add_friend,
     http_requests_delete_friend,
     http_requests_create_groups,
@@ -226,12 +226,36 @@ class ChatController:
     #接受消息
     def handle_message(self, data):
         msg_type = data.get("type")
-
-        if msg_type == "private_message":
+        if msg_type == "system":
+            self._handle_system_message(data)
+        elif msg_type == "private_message":
             self._handle_private_message(data)
         elif msg_type == "group_message":
             self._handle_group_message(data)
 
+    def _handle_system_message(self, data):
+        msg = data.get("message", "")
+        if not msg:
+            return
+
+        if "不是好友" in msg:
+            if self.app.current_chat_type == "private" and self.app.current_target_id:
+                self.app.message_service.save_message(
+                    "private",
+                    self.app.current_target_id,
+                    f"[系统]: {msg}"
+                )
+                self.app.update_chat_ui()
+            return
+        if "群聊已被删除" in msg or "不在该群聊" in msg or "不在该群聊中" in msg:
+            if self.app.current_chat_type == "group" and self.app.current_target_id:
+                self.app.message_service.save_message(
+                    "group",
+                    self.app.current_target_id,
+                    f"[系统]: {msg}"
+                )
+                self.app.update_chat_ui()
+            return
 
     def _handle_private_message(self, data):
         sender = data["from_username"]
@@ -304,12 +328,12 @@ class ChatController:
             if self.app.main_view:
                 self.app.main_view.refresh_current_session_list()
 
-
-    def send_text(self, e=None):
+    #发送消息（文件和文本）
+    def send_text(self, e = None):
         view = self.view
 
-        if view.pending_file_path:
-            self.send_pending_file()
+        if view.pending_file_path: #发送文件
+            self.send_file()
             return
 
         text = view.input_box.value.strip()
@@ -353,6 +377,8 @@ class ChatController:
         view.load_current_chat()
         self.page.update()
 
+
+    #点击图片按钮
     def pick_image(self, e=None):
         view = self.view
 
@@ -360,30 +386,23 @@ class ChatController:
             view.show_msg("请先选择聊天对象")
             return
 
-        view.file_picker_image.pick_files(
-            allow_multiple=False,
-            file_type=ft.FilePickerFileType.IMAGE
-        )
-
+        view.file_picker_image.pick_files(allow_multiple=False, file_type=ft.FilePickerFileType.IMAGE)
+    #图片点击后
     def on_image_picked(self, e):
         view = self.view
-
         if not e.files:
             return
-
         file_path = e.files[0].path
         file_name = os.path.basename(file_path)
 
         try:
             with open(file_path, "rb") as f:
                 img_base64 = base64.b64encode(f.read()).decode("utf-8")
-
-            self.send_image_message(img_base64, file_name)
-
+            self.send_image(img_base64, file_name)
         except Exception as ex:
             view.show_msg(f"图片发送失败：{ex}")
-
-    def send_image_message(self, img_base64, file_name):
+    #发送图片信息
+    def send_image(self, img_base64, file_name):
         view = self.view
 
         if self.app.current_chat_type == "private":
@@ -425,28 +444,25 @@ class ChatController:
         view.load_current_chat()
         self.page.update()
 
+
+    # 点击文件
     def pick_file(self, e=None):
         view = self.view
-
         if not self.app.current_chat_type or not self.app.current_target_id:
             view.show_msg("请先选择聊天对象")
             return
-
         view.file_picker_file.pick_files(allow_multiple=False)
-
+    # 文件点击后
     def on_file_picked(self, e):
         view = self.view
-
         if not e.files:
             return
-
         view.pending_file_path = e.files[0].path
         view.pending_file_name = os.path.basename(view.pending_file_path)
-
         view.input_box.value = f"[文件] {view.pending_file_name}"
         self.page.update()
-
-    def send_pending_file(self):
+    #发送文件信息
+    def send_file(self):
         view = self.view
 
         try:
