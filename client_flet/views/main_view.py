@@ -259,7 +259,7 @@ class MainView:
                     )
                 )
         except Exception as e:
-            self.show_msg(f"加载好友失败：{e}")
+            self.show_tip_dialog(f"加载好友失败：{e}")
 
     def load_group_sessions(self):
         self.session_list.controls.clear()
@@ -283,7 +283,7 @@ class MainView:
                 )
 
         except Exception as e:
-            self.show_msg(f"加载群聊失败：{e}")
+            self.show_tip_dialog(f"加载群聊失败：{e}")
 
     def load_action_sessions(self):
         self.session_list.controls.clear()
@@ -306,7 +306,7 @@ class MainView:
                     border_radius=8,
                     padding=ft.padding.symmetric(horizontal=16),
                     alignment=ft.alignment.center_left,
-                    on_click = lambda e, cb = callback: cb() if cb else self.show_msg("该功能还未迁移"),
+                    on_click = lambda e, cb = callback: cb() if cb else self.show_tip_dialog("该功能还未迁移"),
                     content=ft.Text(title, size=15, color="#222222"),
                 )
             )
@@ -408,11 +408,25 @@ class MainView:
 
 
 
-    def show_msg(self, msg):
-        self.page.snack_bar = ft.SnackBar(ft.Text(msg))
-        self.page.snack_bar.open = True
+
+    def show_tip_dialog(self, msg, title="提示"):
+        dialog = ft.AlertDialog(
+            modal=True,
+            title= ft.Text(title),
+            content= ft.Text(msg),
+            actions=[
+                ft.TextButton(text="确定", on_click=lambda e: self.close_tip_dialog(dialog))
+            ],
+        )
+        self.page.overlay.append(dialog)
+        dialog.open = True
+        self.page.update()
+    def close_tip_dialog(self, dialog):
+        dialog.open = False
         self.page.update()
 
+
+    #建立用户头像
     def build_avatar(self, name="", avatar_url=None, size=48):
         if avatar_url:
             return ft.Container(
@@ -437,6 +451,7 @@ class MainView:
             radius=size // 2,
         )
 
+    #刷新聊天信息
     def refresh_current_session_list(self):
         if self.current_nav == "friend":
             self.redraw_friend_sessions()
@@ -471,8 +486,8 @@ class MainView:
 
     def load_current_chat(self):
         self.chat_list.controls.clear()
-        if not self.app.current_chat_type or not self.app.current_target_id:
-            return
+        # if not self.app.current_chat_type or not self.app.current_target_id:
+        #     return
         messages = self.app.message_service.get_messages(
             self.app.current_chat_type,
             self.app.current_target_id,
@@ -481,6 +496,7 @@ class MainView:
             self.chat_list.controls.append( self.render_message(msg) )
 
     def render_message(self, msg):
+        # 接收的是图片
         if isinstance(msg, dict) and msg.get("kind") == "image":
             sender = msg.get("sender", "")
             sender_text = f"[{sender}]: " if sender else ""
@@ -494,6 +510,7 @@ class MainView:
                     ft.Text(msg.get("file_name", ""), size=14, color="#999999"),
                 ],
             )
+        # 接收的是文件
         if isinstance(msg, dict) and msg.get("kind") == "file":
             sender = msg.get("sender", "")
             sender_text = f"[{sender}]: " if sender else ""
@@ -522,5 +539,6 @@ class MainView:
                     ],
                 ),
             )
+        # 接收的是文本，含emoji
         return ft.Text(str(msg), size=14)
 

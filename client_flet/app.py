@@ -105,8 +105,13 @@ class ChatApp:
 
 def main(page: ft.Page):
     page.title = "Python 聊天室"
-    page.window_width = 1000
-    page.window_height = 800
+    try:
+        page.window.width = 1000
+        page.window.height = 730
+        page.window.center()
+    except Exception:
+        page.window_width = 1000
+        page.window_height = 730
     page.padding = 0
     page.bgcolor = "#f5f5f5"
 

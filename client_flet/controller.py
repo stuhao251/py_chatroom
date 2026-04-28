@@ -331,18 +331,17 @@ class ChatController:
     #发送消息（文件和文本）
     def send_text(self, e = None):
         view = self.view
-
-        if view.pending_file_path: #发送文件
+        if view.pending_file_path:  #发送文件
             self.send_file()
             return
 
         text = view.input_box.value.strip()
         if not text:
+            view.show_tip_dialog("不能发送空消息")
             return
-
-        if not self.app.current_chat_type or not self.app.current_target_id:
-            view.show_msg("请先选择聊天对象")
-            return
+        # if not self.app.current_chat_type or not self.app.current_target_id:
+        #     view.show_tip_dialog("请先选择聊天对象")
+        #     return
 
         if self.app.current_chat_type == "private":
             data = {
@@ -382,9 +381,9 @@ class ChatController:
     def pick_image(self, e=None):
         view = self.view
 
-        if not self.app.current_chat_type or not self.app.current_target_id:
-            view.show_msg("请先选择聊天对象")
-            return
+        # if not self.app.current_chat_type or not self.app.current_target_id:
+        #     view.show_tip_dialog("请先选择聊天对象")
+        #     return
 
         view.file_picker_image.pick_files(allow_multiple=False, file_type=ft.FilePickerFileType.IMAGE)
     #图片点击后
@@ -400,7 +399,7 @@ class ChatController:
                 img_base64 = base64.b64encode(f.read()).decode("utf-8")
             self.send_image(img_base64, file_name)
         except Exception as ex:
-            view.show_msg(f"图片发送失败：{ex}")
+            view.show_tip_dialog(f"图片发送失败：{ex}")
     #发送图片信息
     def send_image(self, img_base64, file_name):
         view = self.view
@@ -448,9 +447,9 @@ class ChatController:
     # 点击文件
     def pick_file(self, e=None):
         view = self.view
-        if not self.app.current_chat_type or not self.app.current_target_id:
-            view.show_msg("请先选择聊天对象")
-            return
+        # if not self.app.current_chat_type or not self.app.current_target_id:
+        #     view.show_tip_dialog("请先选择聊天对象")
+        #     return
         view.file_picker_file.pick_files(allow_multiple=False)
     # 文件点击后
     def on_file_picked(self, e):
@@ -515,4 +514,4 @@ class ChatController:
             self.page.update()
 
         except Exception as ex:
-            view.show_msg(f"文件发送失败：{ex}")
+            view.show_tip_dialog(f"文件发送失败：{ex}")

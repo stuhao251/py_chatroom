@@ -10,6 +10,65 @@ from config import SOCKET_HOST, SOCKET_PORT
 from databsase import query_all, query_one,execute
 
 online_users = {}  # user_id -> conn
+ui_event_handler = None
+
+
+def set_ui_event_handler(handler):
+    global ui_event_handler
+    ui_event_handler = handler
+
+
+def emit_ui_event(event):  #event是一个字典格式
+    if ui_event_handler:
+        try:
+            ui_event_handler(event)
+        except Exception as e:
+            print("推送UI事件失败:", e)
+
+
+def get_user_name_by_id(user_id):
+    row = query_one(
+        "SELECT login_name, nickname FROM users WHERE id=%s",
+        (user_id,)
+    )
+    if row:
+        return f"{row[1]}({row[0]})"
+    return f"用户{user_id}"
+
+
+def get_group_name_by_id(group_id):
+    row = query_one(
+        "SELECT group_name FROM chat_groups WHERE id=%s",
+        (group_id,)
+    )
+    if row:
+        return row[0]
+    return f"群聊{group_id}"
+
+
+def get_message_preview(data):
+    content_type = data.get("content_type", "text")
+    content = data.get("content", "")
+    file_name = data.get("file_name", "")
+
+    if content_type == "text":
+        return content
+
+    if file_name:
+        return file_name
+
+    if content_type == "image":
+        return "[图片]"
+
+    if content_type == "file":
+        return "[文件]"
+
+    if content_type == "emoji":
+        return "[表情]"
+
+    return "[消息]"
+
+
 
 #判断是不是朋友
 def is_friend(user_id, target_id):
@@ -32,8 +91,6 @@ def sever_send_json(conn, data):
         conn.sendall(msg.encode("utf-8"))
     except Exception as e:
         print(e)
-
-
 
 def server_recv_json(conn_file):
     try:
@@ -94,10 +151,16 @@ def handle_client(conn, addr):
                 online_users[user_id] = conn
 
                 #向数据库更新用户登录状态
-                #from databsase import execute
                 execute("UPDATE users SET is_online=1 WHERE id=%s", (user_id,))
                 sever_send_json(conn, {"type": "system", "message": "socket连接成功"})
                 print(f"用户上线: {user_id}, 账号: {user_name}, 用户昵称: {user_nickname}")
+
+                emit_ui_event({
+                    "type": "login",
+                    "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "text": f"用户上线：{user_nickname}，账号：{user_name}，用户ID：{user_id}",
+                    "online_count": len(online_users)
+                })
 
             elif msg_type == "private_message":
                 from_user_id = int(data["from_user_id"])
@@ -121,6 +184,19 @@ def handle_client(conn, addr):
                     "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 }
                 target_conn = online_users.get(target_id)
+
+                emit_ui_event({
+                    "type": "private",
+                    "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "text": (
+                        f"私聊：{get_user_name_by_id(from_user_id)} "
+                        f"发送给 {get_user_name_by_id(target_id)}，"
+                        f"内容：{get_message_preview(data)}，"
+                        f"状态：{'已发送' if target_conn else '对方离线'}"
+                    ),
+                    "online_count": len(online_users)
+                })
+
                 if target_conn:
                     sever_send_json(target_conn, payload)
 
@@ -148,6 +224,18 @@ def handle_client(conn, addr):
                     "file_name": data.get("file_name", ""),
                     "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 }
+
+                emit_ui_event({
+                    "type": "group",
+                    "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "text": (
+                        f"群聊：{get_group_name_by_id(group_id)}，"
+                        f"发送人：{get_user_name_by_id(from_user_id)}，"
+                        f"内容：{get_message_preview(data)}"
+                    ),
+                    "online_count": len(online_users)
+                })
+
                 broadcast_to_group(group_id, payload, exclude_user_id=from_user_id)
 
             elif msg_type == "logout_socket":
@@ -155,6 +243,13 @@ def handle_client(conn, addr):
 
                 if user_id in online_users:
                     del online_users[user_id]
+
+                emit_ui_event({
+                    "type": "logout",
+                    "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "text": f"用户退出登录：{get_user_name_by_id(user_id)}",
+                    "online_count": len(online_users)
+                })
 
                 print(f"用户 {user_id} 已退出登录")
                 break
@@ -165,11 +260,19 @@ def handle_client(conn, addr):
     finally:
         if current_user_id and current_user_id in online_users:
             del online_users[current_user_id]
+
+            emit_ui_event({
+                "type": "logout",
+                "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "text": f"用户下线：{get_user_name_by_id(current_user_id)}",
+                "online_count": len(online_users)
+            })
+
             print(f"用户下线: {current_user_id}, 账号: {current_user_name}")
+
         # 更新数据库-用户离线
         if current_user_id:
             try:
-                #from databsase import execute
                 execute("UPDATE users SET is_online=0 WHERE id=%s", (current_user_id,))
             except Exception as e:
                 print("更新离线状态失败:", e)
@@ -178,10 +281,9 @@ def handle_client(conn, addr):
 
 def start_server():
     try:
-        # 启动时清空在线状态
-        execute("UPDATE users SET is_online=0")
-
+        execute("UPDATE users SET is_online=0")  # 启动时清空在线状态
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # 允许端口快速复用，避免刚关闭又启动时报端口占用
         server.bind((SOCKET_HOST, SOCKET_PORT))
         server.listen(100)
         print(f"Socket server running at {SOCKET_HOST}:{SOCKET_PORT}")

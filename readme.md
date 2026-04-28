@@ -229,16 +229,22 @@ chat_cache = {
 ![flet_update(1).png](figs/flet_update%281%29.png)
 
 ---
+## 📸 8 界面展示(flet版本)
 
-## 📸 8 运行流程
+服务端页面
+
+![server_main.png](figs/server_main.png)
+
+---
+## 📸 9 运行流程
 
 * 数据库--提前创建对应数据库
-* 服务端--开启http_server  socket_server
+* 服务端--方式1：开启http_server、socket_server    方式2：直接开启server_ui
 * 客户端--多应用开启client.py或app.py
 
 
 ---
-## 🚧 9 后续可优化方向
+## 🚧 10 后续可优化方向
 
 * ⏳ 离线消息（未实现）
 * 📦 添加好友需确认
