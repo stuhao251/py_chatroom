@@ -3,7 +3,7 @@ from tkinter import *
 from tkinter import messagebox
 from PIL import Image, ImageTk, ImageDraw
 import io
-from services.client_http_services import http_requests_get_friends, http_requests_get_groups
+from services_tk.client_http_services_v1 import http_requests_get_friends, http_requests_get_groups
 
 
 class MainWindow:

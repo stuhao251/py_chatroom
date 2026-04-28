@@ -6,7 +6,7 @@ from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw, ImageOps
 
 from server.config import HTTP_BASE
-
+from services_tk.client_http_services_v1 import http_requests_register
 
 class RegisterWindow:
     BG_COLOR = "#f5f5f5"
@@ -430,7 +430,8 @@ class RegisterWindow:
         }
 
         try:
-            resp = requests.post(f"{HTTP_BASE}/register", data=data, files=files).json()
+            #resp = requests.post(f"{HTTP_BASE}/register", data=data, files=files).json()
+            resp = http_requests_register(data, files)
             if resp["code"] == 0:
                 messagebox.showinfo("提示", "注册成功", parent=self.top)
                 self.go_back() #回到登录页面

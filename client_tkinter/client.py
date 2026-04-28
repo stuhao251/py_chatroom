@@ -14,13 +14,13 @@ except Exception:
 from login_window import LoginWindow
 from main_window import MainWindow
 from update_info_window import UpdateInfoWindow
-from services.client_http_services import (http_requests_add_friend,
-                                           http_requests_delete_friend,
-                                           http_requests_create_groups,
-                                           http_requests_join_groups, http_requests_delete_group,
-                                           http_requests_quit_group)
-from services.message_service import MessageService
-from services.socket_service import SocketService
+from services_tk.client_http_services_v1 import (http_requests_add_friend,
+                                                 http_requests_delete_friend,
+                                                 http_requests_create_groups,
+                                                 http_requests_join_groups, http_requests_delete_group,
+                                                 http_requests_quit_group)
+from services_tk.message_service_v1 import MessageService
+from services_tk.socket_service_v1 import SocketService
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_DIR = os.path.join(BASE_DIR, "chat_logs")

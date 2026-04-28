@@ -150,6 +150,15 @@ def handle_client(conn, addr):
                 }
                 broadcast_to_group(group_id, payload, exclude_user_id=from_user_id)
 
+            elif msg_type == "logout_socket":
+                user_id = int(data["user_id"])
+
+                if user_id in online_users:
+                    del online_users[user_id]
+
+                print(f"用户 {user_id} 已退出登录")
+                break
+
     except Exception as e:
         print("连接异常:", e)
 

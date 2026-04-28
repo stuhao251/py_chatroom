@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 
 from register_window import RegisterWindow
-from services.client_http_services import http_requests_login
+from services_tk.client_http_services_v1 import http_requests_login
 
 
 class LoginWindow:

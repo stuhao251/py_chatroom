@@ -7,6 +7,14 @@ import requests
 from datetime import datetime
 from server.config import HTTP_BASE, SOCKET_HOST, SOCKET_PORT
 
+#客户端的注册请求
+def http_requests_register(data, files):
+    resp = requests.post(f"{HTTP_BASE}/register", data=data, files=files).json()
+    print("客户端注册请求：", resp)
+
+    return resp
+
+
 #客户端的登录请求
 def http_requests_login(login_name, password):
     resp = requests.post(
@@ -85,4 +93,26 @@ def http_requests_quit_group(user_id, group_name):
     return requests.post(
         f"{HTTP_BASE}/quit_group",
         json={"user_id": user_id, "group_name": group_name}
+    ).json()
+
+# 获取用户信息
+def http_requests_get_user_info(user_id):
+    return requests.get(
+        f"{HTTP_BASE}/user_info/{user_id}"
+    ).json()
+
+# 更新用户信息
+def http_requests_update_user_info(user_id, nickname, gender, password="", confirm_password="", files=None):
+    data = {
+        "user_id": user_id,
+        "nickname": nickname,
+        "gender": gender,
+        "password": password,
+        "confirm_password": confirm_password,
+    }
+
+    return requests.post(
+        f"{HTTP_BASE}/update_user_info",
+        data=data,
+        files=files
     ).json()
