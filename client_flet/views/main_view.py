@@ -1,5 +1,6 @@
 import flet as ft
 
+from client_flet.views.emoji_panel_view import EmojiPanelView
 from client_flet.services_flet.client_http_services_v2 import (
     http_requests_get_friends,
     http_requests_get_groups,
@@ -15,6 +16,11 @@ class MainView:
         self.current_nav = "friend"
         self.pending_file_path = None
         self.pending_file_name = None
+
+        self.emoji_panel_view = EmojiPanelView(
+            page=self.page,
+            on_confirm=self.append_emoji_to_input,
+        )
 
         self.session_title = ft.Text("好友列表", size=18, weight=ft.FontWeight.BOLD)
         self.session_list = ft.ListView(expand=True, spacing=6, padding=10)
@@ -206,34 +212,11 @@ class MainView:
             ),
         )
 
-
     # 表情面板
     def open_emoji_panel(self, e=None):
-        emojis = [
-            "😀", "😁", "😂", "🤣", "😊", "😍", "😘", "😎",
-            "😭", "😡", "👍", "👎", "👏", "🙏", "🎉", "🔥",
-            "❤️", "💔", "🌹", "🍉", "☕", "⭐"
-        ]
-
-        def select_emoji(ev):
-            emoji = ev.control.data
-            self.input_box.value = (self.input_box.value or "") + emoji
-
-            dialog.open = False
-            self.page.update()
-
-        grid = ft.GridView(
-            runs_count=6,
-            spacing=10,
-            run_spacing=10,
-            controls=[ ft.TextButton(text=emo, data=emo, on_click = select_emoji) for emo in emojis ]
-        )
-
-        dialog = ft.AlertDialog( modal=True, title=ft.Text("选择表情"),
-            content=ft.Container(width=300, height=220, content=grid ), )
-
-        self.page.overlay.append(dialog)
-        dialog.open = True
+        self.emoji_panel_view.open(e)
+    def append_emoji_to_input(self, emoji):
+        self.input_box.value = (self.input_box.value or "") + emoji
         self.page.update()
 
     #功能 加载好友列表

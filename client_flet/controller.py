@@ -68,6 +68,7 @@ class ChatController:
         self.page.update()
 
 
+    # 添加朋友逻辑
     def add_friend(self):
         def submit(friend_login_name):
             try:
@@ -82,7 +83,7 @@ class ChatController:
 
         self.show_input_dialog("添加好友", "好友登录名", submit)
 
-
+    # 删除朋友逻辑
     def delete_friend(self):
         def submit(friend_login_name):
             try:
@@ -100,9 +101,10 @@ class ChatController:
             except Exception as e:
                 self.show_alert("错误", str(e))
 
-        self.show_input_dialog("删除好友", "好友登录名", submit)
+        self.show_input_dialog("删除好友", "好友账号名", submit)
 
 
+    # 创建群聊逻辑
     def create_group(self):
         def submit(group_name):
             try:
@@ -116,6 +118,7 @@ class ChatController:
         self.show_input_dialog("创建群聊", "群聊名称", submit)
 
 
+    # 加入群聊逻辑
     def join_group(self):
         def submit(group_name):
             try:
@@ -129,6 +132,7 @@ class ChatController:
         self.show_input_dialog("加入群聊", "群聊名称", submit)
 
 
+    # 删除群聊逻辑
     def delete_group(self):
         def submit(group_name):
             try:
@@ -149,6 +153,7 @@ class ChatController:
         self.show_input_dialog("删除群聊", "群聊名称", submit)
 
 
+    # 退出群聊逻辑
     def quit_group(self):
         def submit(group_name):
             try:
@@ -168,6 +173,8 @@ class ChatController:
 
         self.show_input_dialog("退出群聊", "群聊名称", submit)
 
+
+    # 修改文件保存路径逻辑
     def open_file_save_path_dialog(self):
         path_field = ft.TextField(
             label="文件保存路径",
@@ -211,6 +218,8 @@ class ChatController:
         dialog.open = True
         self.page.update()
 
+
+    # 保存文件逻辑
     def save_received_file(self, file_base64, file_name):
         save_dir = self.app.file_save_dir
         os.makedirs(save_dir, exist_ok=True)
@@ -292,7 +301,6 @@ class ChatController:
             if self.app.main_view:
                 self.app.main_view.refresh_current_session_list()
 
-
     def _handle_group_message(self, data):
         sender = data["from_username"]
         group_id = data["group_id"]
@@ -328,10 +336,13 @@ class ChatController:
             if self.app.main_view:
                 self.app.main_view.refresh_current_session_list()
 
-    #发送消息（文件和文本）
+
+    #发送消息：文件、文本
     def send_text(self, e = None):
         view = self.view
-        if view.pending_file_path:  #发送文件
+
+        # 1 发送文件逻辑： 如果文件路径和输入框内存在该文件名，则发送文件
+        if view.pending_file_path and view.input_box.value == f"[文件] {view.pending_file_name}":
             self.send_file()
             return
 
@@ -339,10 +350,8 @@ class ChatController:
         if not text:
             view.show_tip_dialog("不能发送空消息")
             return
-        # if not self.app.current_chat_type or not self.app.current_target_id:
-        #     view.show_tip_dialog("请先选择聊天对象")
-        #     return
 
+        # 2 发送文本逻辑： 判断私人还是群聊
         if self.app.current_chat_type == "private":
             data = {
                 "type": "private_message",
@@ -364,14 +373,16 @@ class ChatController:
                 "file_name": ""
             }
 
+        #3 socket发送出去
         self.app.socket_service.send_json(data)
 
+        #4 把发送消息存到缓存中
         self.app.message_service.save_message(
             self.app.current_chat_type,
             self.app.current_target_id,
-            f"[我]: {text}",
-        )
+            f"[我]: {text}", )
 
+        #5 聊天区清空，加载当前聊天内容
         view.input_box.value = ""
         view.load_current_chat()
         self.page.update()
@@ -380,13 +391,8 @@ class ChatController:
     #点击图片按钮
     def pick_image(self, e=None):
         view = self.view
-
-        # if not self.app.current_chat_type or not self.app.current_target_id:
-        #     view.show_tip_dialog("请先选择聊天对象")
-        #     return
-
         view.file_picker_image.pick_files(allow_multiple=False, file_type=ft.FilePickerFileType.IMAGE)
-    #图片点击后
+    #图片点击后逻辑
     def on_image_picked(self, e):
         view = self.view
         if not e.files:
@@ -447,11 +453,8 @@ class ChatController:
     # 点击文件
     def pick_file(self, e=None):
         view = self.view
-        # if not self.app.current_chat_type or not self.app.current_target_id:
-        #     view.show_tip_dialog("请先选择聊天对象")
-        #     return
         view.file_picker_file.pick_files(allow_multiple=False)
-    # 文件点击后
+    # 文件点击后逻辑
     def on_file_picked(self, e):
         view = self.view
         if not e.files:
@@ -460,7 +463,7 @@ class ChatController:
         view.pending_file_name = os.path.basename(view.pending_file_path)
         view.input_box.value = f"[文件] {view.pending_file_name}"
         self.page.update()
-    #发送文件信息
+    # 发送文件信息
     def send_file(self):
         view = self.view
 

@@ -21,9 +21,8 @@ SOCKET_PORT = 9001
 
 # 阿里云 OSS
 load_dotenv()
-
-OSS_ENDPOINT = os.getenv("https://oss-cn-chengdu.aliyuncs.com")
-OSS_BUCKET_NAME = os.getenv("python-chatroom")
-OSS_ACCESS_KEY_ID = os.getenv("LTAI5tK4MTSWfsUJdY9yssvM")
-OSS_ACCESS_KEY_SECRET = os.getenv("mUwrWSAL8pnjbkTvOhZ1dhTsnUpowb")
-OSS_BUCKET_DOMAIN = os.getenv("https://python-chatroom.oss-cn-chengdu.aliyuncs.com")
+OSS_ENDPOINT = os.getenv("OSS_ENDPOINT")
+OSS_BUCKET_NAME = os.getenv("OSS_BUCKET_NAME")
+OSS_ACCESS_KEY_ID = os.getenv("OSS_ACCESS_KEY_ID")
+OSS_ACCESS_KEY_SECRET = os.getenv("OSS_ACCESS_KEY_SECRET")
+OSS_BUCKET_DOMAIN = os.getenv("OSS_BUCKET_DOMAIN")
