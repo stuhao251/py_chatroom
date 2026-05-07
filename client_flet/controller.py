@@ -298,8 +298,7 @@ class ChatController:
             self.app.update_chat_ui()
         else:
             self.app.message_service.increase_unread("private", from_user_id)
-            if self.app.main_view:
-                self.app.main_view.refresh_current_session_list()
+            self.app.main_view.refresh_current_session_list()
 
     def _handle_group_message(self, data):
         sender = data["from_username"]
@@ -333,8 +332,7 @@ class ChatController:
             self.app.update_chat_ui()
         else:
             self.app.message_service.increase_unread("group", group_id)
-            if self.app.main_view:
-                self.app.main_view.refresh_current_session_list()
+            self.app.main_view.refresh_current_session_list()
 
 
     #发送消息：文件、文本

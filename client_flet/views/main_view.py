@@ -466,8 +466,6 @@ class MainView:
 
     def load_current_chat(self):
         self.chat_list.controls.clear()
-        # if not self.app.current_chat_type or not self.app.current_target_id:
-        #     return
         messages = self.app.message_service.get_messages(
             self.app.current_chat_type,
             self.app.current_target_id,

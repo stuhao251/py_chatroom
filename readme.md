@@ -1,12 +1,12 @@
 
 # 💬 Python Chat Room（即时通讯聊天系统）
 
-一个基于 **Python + Flet/Tkinter + Socket + HTTP + MySQL + 阿里云OSS** 实现的两种ui桌面端即时通讯系统，支持私聊、群聊、图片发送、表情、未读消息提示等功能，UI 风格参考微信。
+一个基于 **Python + Flet/Tkinter + Socket + HTTP + MySQL + 阿里云OSS** 实现的两种框架ui桌面端即时通讯系统，支持私聊、群聊、图片发送、表情、未读消息提示等功能，UI 风格参考微信。
 
 ---
 
 ## 🚀 1 项目特点
-* ✅ 两种UI / 有Tkinter和Flet两种框架的客户端界面
+* ✅ 两种UI / 有Tkinter和Flet两种框架的客户端界面，优先推荐flet版本
 * ✅ 私聊 / 群聊实时通信（Socket）
 * ✅ 登录 / 注册 / 修改个人信息（HTTP + MySQL）
 * ✅ 好友管理（添加 / 删除）
@@ -14,9 +14,8 @@
 * ✅ 表情面板
 * ✅ 图片发送与展示
 * ✅ 未读消息红点提示
-* ✅ 会话隔离（不同聊天对象独立缓存） 
-* ✅ 系统消息提示（删除好友 / 群聊等）
-* ✅ 头像上传（阿里云 OSS 存储）
+* ✅ 会话隔离（不同聊天对象独立缓存）
+* ✅ 头像上传与显示（阿里云 OSS 存储，本地显示头像）
 
 ---
 
@@ -87,6 +86,7 @@ client_tkinter/
 
 server/
 │
+├── server_ui.py               # 服务器启动界面
 ├── http_server.py             # Flask接口
 ├── socket_server.py           # Socket服务
 └── database.py                # 数据库操作
@@ -139,24 +139,6 @@ server/
 
 ---
 
-### 🖼 图片发送
-
-流程：
-
-1. 客户端选择图片
-2. 转为 Base64 编码
-3. 通过 Socket 发送
-4. 接收端解码并显示
-
----
-
-### 😊 表情系统
-
-* 自定义 Emoji 面板
-* 点击表情直接发送
-* 表情作为文本处理
-
----
 
 ### 🔴 未读消息
 
@@ -184,18 +166,12 @@ chat_cache = {
 
 ---
 
-### 🖼 头像上传
-
-* 用户上传头像
-* 服务端上传至阿里云 OSS
-* 数据库存储 `object_key`
-* 前端通过 URL 加载头像
-
----
 
 
 
-## 📸 6 界面展示(tkinter版本)
+## 📸 6 界面展示
+
+### 📸 tkinter版本客户端UI
 登录页
 
 ![tkinter_login.jpg](figs/tkinter_login.jpg)
@@ -210,7 +186,7 @@ chat_cache = {
 
 ---
 
-## 📸 7 界面展示(flet版本)
+### 📸 flet版本版本客户端UI
 
 登录页
 
@@ -229,14 +205,14 @@ chat_cache = {
 ![flet_update(1).png](figs/flet_update%281%29.png)
 
 ---
-## 📸 8 界面展示(flet版本)
+### 📸 服务端页面
 
-服务端页面
+监控页面
 
 ![server_main.png](figs/server_main.png)
 
 ---
-## 📸 9 运行流程
+## 📸 7 运行流程
 
 * 数据库--提前创建对应数据库
 * 服务端--方式1：开启http_server、socket_server    方式2：直接开启server_ui
@@ -244,7 +220,7 @@ chat_cache = {
 
 
 ---
-## 🚧 10 后续可优化方向
+## 🚧 8 后续可优化方向
 
 * ⏳ 离线消息（未实现）
 * 📦 添加好友需确认
