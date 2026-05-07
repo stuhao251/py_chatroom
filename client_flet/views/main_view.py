@@ -38,14 +38,14 @@ class MainView:
         return ft.Row(
             expand=True, spacing=0,
             controls=[
-                self.build_nav_bar(),
+                self.build_nav_bar_panel(),
                 self.build_session_panel(),
                 self.build_chat_panel(),
             ], )
 
 
-    # 建立导航栏
-    def build_nav_bar(self):
+    #1 导航栏
+    def build_nav_bar_panel(self):
         return ft.Container(
             width=72,
             bgcolor="#2e2e2e",
@@ -72,7 +72,7 @@ class MainView:
                 ],
             ),
         )
-    # 导航按钮
+    # 导航功能按钮
     def nav_button(self, icon, mode):
         btn = ft.Container(
             width=56,
@@ -116,7 +116,7 @@ class MainView:
             btn.content.color = "#07c160" if selected else "#d8d8d8"
 
 
-    #建立会话栏
+    #2 会话栏
     def build_session_panel(self):
         return ft.Container(
             width=300,
@@ -146,7 +146,7 @@ class MainView:
         )
 
 
-    #聊天栏构建
+    #3 聊天栏
     def build_chat_panel(self):
         self.emoji_btn = ft.IconButton(
             icon=ft.Icons.EMOJI_EMOTIONS_OUTLINED,
@@ -207,7 +207,7 @@ class MainView:
         )
 
 
-    #表情面板
+    # 表情面板
     def open_emoji_panel(self, e=None):
         emojis = [
             "😀", "😁", "😂", "🤣", "😊", "😍", "😘", "😎",
@@ -236,7 +236,7 @@ class MainView:
         dialog.open = True
         self.page.update()
 
-
+    #功能 加载好友列表
     def load_friend_sessions(self):
         self.session_list.controls.clear()
 
@@ -261,6 +261,7 @@ class MainView:
         except Exception as e:
             self.show_tip_dialog(f"加载好友失败：{e}")
 
+    #功能 加载群聊列表
     def load_group_sessions(self):
         self.session_list.controls.clear()
 
@@ -281,10 +282,10 @@ class MainView:
                         target_id=item["id"],
                     )
                 )
-
         except Exception as e:
             self.show_tip_dialog(f"加载群聊失败：{e}")
 
+    #功能 加载功能区列表
     def load_action_sessions(self):
         self.session_list.controls.clear()
         actions = [
@@ -311,13 +312,15 @@ class MainView:
                 )
             )
 
+    # 单独一个信息容器（好友或群聊结构）
     def create_session_item(self, title, subtitle, on_click, chat_type=None, target_id=None, avatar_url=None):
         unread = 0
         if chat_type and target_id:
             unread = self.app.message_service.get_unread(chat_type, target_id)
 
+        # 红点未读数字
         badge = ft.Container(
-            visible=unread > 0,
+            visible = unread > 0,
             bgcolor="#fa5151",
             border_radius=10,
             padding=ft.padding.symmetric(horizontal=6, vertical=2),
@@ -337,11 +340,7 @@ class MainView:
             content=ft.Row(
                 spacing=12,
                 controls=[
-                    self.build_avatar(
-                        name=title,
-                        avatar_url=avatar_url,
-                        size=48
-                    ),
+                    self.build_avatar(name = title, avatar_url = avatar_url, size=48),
                     ft.Column(
                         expand=True,
                         spacing=4,
@@ -408,12 +407,10 @@ class MainView:
 
 
 
-
+    #提示窗口
     def show_tip_dialog(self, msg, title="提示"):
         dialog = ft.AlertDialog(
-            modal=True,
-            title= ft.Text(title),
-            content= ft.Text(msg),
+            modal = True, title = ft.Text(title), content = ft.Text(msg),
             actions=[
                 ft.TextButton(text="确定", on_click=lambda e: self.close_tip_dialog(dialog))
             ],
@@ -426,8 +423,8 @@ class MainView:
         self.page.update()
 
 
-    #建立用户头像
-    def build_avatar(self, name="", avatar_url=None, size=48):
+    #用户头像--导航栏头像和朋友列表头像
+    def build_avatar(self, name="", avatar_url = None, size=48):
         if avatar_url:
             return ft.Container(
                 width=size,

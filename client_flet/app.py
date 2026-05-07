@@ -48,7 +48,7 @@ class ChatApp:
         self.main_view = MainView(self.page, self)
         self.controller.bind_view( self.main_view )
         self.page.add( self.main_view.build() )
-        self.main_view.switch_nav("")
+        self.main_view.switch_nav("friend")
         self.page.update()
 
     def update_chat_ui(self):

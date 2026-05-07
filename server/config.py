@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 # MySQL数据配置
 MYSQL_CONFIG = {
     "host": "127.0.0.1",
@@ -18,8 +20,10 @@ SOCKET_HOST = "127.0.0.1"
 SOCKET_PORT = 9001
 
 # 阿里云 OSS
-OSS_ENDPOINT = "https://oss-cn-chengdu.aliyuncs.com"
-OSS_BUCKET_NAME = "python-chatroom"
-OSS_ACCESS_KEY_ID = "LTAI5tK4MTSWfsUJdY9yssvM"
-OSS_ACCESS_KEY_SECRET = "mUwrWSAL8pnjbkTvOhZ1dhTsnUpowb"
-OSS_BUCKET_DOMAIN = "https://python-chatroom.oss-cn-chengdu.aliyuncs.com"
+load_dotenv()
+
+OSS_ENDPOINT = os.getenv("https://oss-cn-chengdu.aliyuncs.com")
+OSS_BUCKET_NAME = os.getenv("python-chatroom")
+OSS_ACCESS_KEY_ID = os.getenv("LTAI5tK4MTSWfsUJdY9yssvM")
+OSS_ACCESS_KEY_SECRET = os.getenv("mUwrWSAL8pnjbkTvOhZ1dhTsnUpowb")
+OSS_BUCKET_DOMAIN = os.getenv("https://python-chatroom.oss-cn-chengdu.aliyuncs.com")
