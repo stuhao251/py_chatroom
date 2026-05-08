@@ -346,7 +346,7 @@ class MainView:
         self.enable_chat_area()
         self.load_current_chat()
         self.app.message_service.clear_unread("private", item["id"])
-        self.refresh_current_session_list()
+        self.refresh_session_list_badge()
 
     def select_group(self, item):
         self.app.current_chat_type = "group"
@@ -361,7 +361,7 @@ class MainView:
         self.enable_chat_area()
         self.load_current_chat()
         self.app.message_service.clear_unread("group", item["id"])
-        self.refresh_current_session_list()
+        self.refresh_session_list_badge()
 
     def enable_chat_area(self):
         self.input_box.disabled = False
@@ -432,7 +432,7 @@ class MainView:
         )
 
     #刷新聊天信息
-    def refresh_current_session_list(self):
+    def refresh_session_list_badge(self):
         if self.current_nav == "friend":
             self.redraw_friend_sessions()
         elif self.current_nav == "group":
@@ -444,7 +444,7 @@ class MainView:
             self.session_list.controls.append(
                 self.create_session_item(
                     title=item["nickname"],
-                    subtitle=f"账号：{item['login_name']}",
+                    subtitle=f"账号: {item['login_name']}",
                     on_click=lambda e, i=item: self.select_friend(i),
                     chat_type="private",
                     target_id=item["id"],
@@ -457,7 +457,7 @@ class MainView:
             self.session_list.controls.append(
                 self.create_session_item(
                     title=item["group_name"],
-                    subtitle=f"群成员：{item.get('member_count', 0)}人",
+                    subtitle=f"群成员: {item.get('member_count', 0)}人",
                     on_click=lambda e, i=item: self.select_group(i),
                     chat_type="group",
                     target_id=item["id"],
@@ -510,7 +510,7 @@ class MainView:
                             ]
                         ),
                         ft.Text(
-                            f"已保存到：{save_path}" if save_path else "",
+                            f"已保存到: {save_path}" if save_path else "",
                             size=11,
                             color="#999999",
                         ),
